@@ -1,0 +1,30 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "back-end nodejs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --exec babel-node src/index.js"
+  },
+  "author": "LeVanSon",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.15.3",
+    "nodemailer": "^6.10.1",
+    "sequelize": "6.37.7",
+    "sequelize-cli": "6.6.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.8",
+    "@babel/node": "^7.27.1",
+    "@babel/preset-env": "^7.28.5",
+    "nodemon": "^3.1.10"
+  }
+}
