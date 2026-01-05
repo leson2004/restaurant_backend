@@ -146,10 +146,41 @@ const deleteCustomerById = async (id) => {
       : { status: 500, message: "Failed to delete customer" };
   }
 };
+const checkCustomerPassword = async (email, currentPassword) => {
+  try {
+    const customer = await Customer.findOne({
+      where: { email },
+    });
+
+    if (!customer) {
+      throw {
+        status: 404,
+        message: "Customer not found",
+      };
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, customer.password);
+
+    if (!isMatch) {
+      throw {
+        status: 400,
+        message: "Mật khẩu không chính xác",
+      };
+    }
+
+    return true;
+  } catch (error) {
+    throw error.status
+      ? error
+      : { status: 500, message: "Failed to check password" };
+  }
+};
+
 module.exports = {
   getCustomers,
   getCustomerById,
   createCustomer,
   updateCustomerById,
   deleteCustomerById,
+  checkCustomerPassword,
 };

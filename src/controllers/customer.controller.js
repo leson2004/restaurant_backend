@@ -130,10 +130,35 @@ const deleteCustomer = async (req, res) => {
     });
   }
 };
+const checkPassword = async (req, res) => {
+  try {
+    const { email, currentPassword } = req.body;
+
+    // ✅ Validate
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    if (!currentPassword) {
+      return res.status(400).json({ error: "Current password is required" });
+    }
+
+    await customerService.checkCustomerPassword(email, currentPassword);
+
+    res.status(200).json({
+      message: "Password is correct",
+    });
+  } catch (error) {
+    res.status(error.status || 500).json({
+      error: error.message || "Internal Server Error",
+    });
+  }
+};
 module.exports = {
   getCustomers,
   getCustomerById,
   createCustomer,
   updateCustomer,
   deleteCustomer,
+  checkPassword,
 };
