@@ -1,5 +1,5 @@
-import { sequelize, ProductCategory } from "../models/index";
-import { Op } from "sequelize";
+const { sequelize, ProductCategory } = require("../models/index");
+const { Op } = require("sequelize");
 
 const getAllProductCategories = async ({
   search,
