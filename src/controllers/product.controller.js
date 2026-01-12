@@ -373,4 +373,5 @@ module.exports = {
   updateProduct,
   patchProduct,
   deleteProduct,
+  getInactiveProducts,
 };

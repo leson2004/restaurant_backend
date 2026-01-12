@@ -1,5 +1,4 @@
 import blogService from "../services/blogs.service";
-import { getAll } from "./blogCategory.controller";
 
 const getAll = async (req, res) => {
   try {
@@ -8,7 +7,7 @@ const getAll = async (req, res) => {
     page = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
     limit = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
 
-    const result = await blogService.getAll({
+    const result = await blogService.getAllBlogs({
       searchName,
       page,
       limit,
@@ -193,7 +192,7 @@ const getBlogBySlug = async (req, res) => {
     });
   }
 };
-module.exports = {
+export {
   getAll,
   getPosts,
   getBlogById,

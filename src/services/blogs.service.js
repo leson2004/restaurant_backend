@@ -1,7 +1,7 @@
-const { Blog } = require("../models/index");
+const { Blog, sequelize } = require("../models/index");
 const { Op } = require("sequelize");
 
-const getAll = async ({ searchName, page, limit }) => {
+const getAllBlogs = async ({ searchName, page, limit }) => {
   try {
     const offset = (page - 1) * limit;
 
@@ -251,7 +251,7 @@ const getBlogBySlug = async (slug) => {
   }
 };
 module.exports = {
-  getAll,
+  getAllBlogs,
   getPostsWithPagination,
   getBlogById,
   createBlog,

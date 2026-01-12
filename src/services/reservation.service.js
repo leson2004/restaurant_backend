@@ -79,7 +79,7 @@ const findAvailableTable = async (reservationDate, partySize, transaction) => {
   return table.id;
 };
 
-export const createReservation = async (data) => {
+export const createReservationService = async (data) => {
   const transaction = await sequelize.transaction();
 
   try {

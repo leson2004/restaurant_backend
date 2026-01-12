@@ -1,7 +1,7 @@
 import {
   getAllTablesWithReservationsService,
   getTableWithReservationByIdService,
-  createReservation,
+  createReservationService,
   updateReservationById,
   patchReservationById,
   deleteReservationById,
@@ -58,7 +58,7 @@ export const createReservation = async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const result = await createReservation(req.body);
+    const result = await createReservationService(req.body);
 
     return res.status(201).json({
       message: "Reservation created successfully",

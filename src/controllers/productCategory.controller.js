@@ -1,4 +1,4 @@
-import productCategoryService from "../services/productCategory.service";
+const productCategoryService = require("../services/productCategory.service");
 
 const getAllProductCategories = async (req, res) => {
   try {

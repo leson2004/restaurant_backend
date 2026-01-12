@@ -202,4 +202,5 @@ module.exports = {
   addPermissionsToRole,
   updateRolePermissionById,
   patchRolePermission,
+  deleteRolePermission,
 };

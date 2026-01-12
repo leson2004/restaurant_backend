@@ -1,7 +1,7 @@
-import express from "express";
+const express = require("express");
 let router = express.Router();
 
-import authController from "../controllers/auth.controller";
+const authController = require("../controllers/auth.controller");
 
 router.post("/google", authController.googleLogin);
 router.post("/facebook", authController.facebookLogin);

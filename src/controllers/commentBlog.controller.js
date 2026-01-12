@@ -201,4 +201,5 @@ module.exports = {
   createComment,
   updateComment,
   patchComment,
+  deleteComment,
 };

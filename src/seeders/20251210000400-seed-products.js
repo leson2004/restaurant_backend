@@ -8,10 +8,11 @@ module.exports = {
         name: "Bún bò Huế đặc biệt",
         price: 45000,
         sale_price: 40000,
-        image: "https://example.com/bunbohue.jpg",
+        image:
+          "https://firebasestorage.googleapis.com/v0/b/huong-sen-restaurant.appspot.com/o/images%2Funnamed.jpg",
         description: "Món đặc sản nổi tiếng của Huế",
         status: 1,
-        categories_id: 1,
+        categories_id: 1, // 👉 PHẢI TỒN TẠI trong product_categories
         created_at: new Date(),
         updated_at: new Date(),
       },
@@ -20,7 +21,8 @@ module.exports = {
         name: "Gỏi cuốn tôm thịt",
         price: 30000,
         sale_price: 28000,
-        image: "https://example.com/goicuon.jpg",
+        image:
+          "https://firebasestorage.googleapis.com/v0/b/huong-sen-restaurant.appspot.com/o/images%2FScreenshot.png",
         description: "Món khai vị tươi ngon, thanh mát",
         status: 1,
         categories_id: 2,

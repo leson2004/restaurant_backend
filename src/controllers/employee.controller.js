@@ -175,4 +175,5 @@ module.exports = {
   createEmployee,
   updateEmployee,
   checkPassword,
+  deleteEmployee,
 };
