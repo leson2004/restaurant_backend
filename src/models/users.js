@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       // Một user có thể có nhiều đơn đặt bàn (Reservations)
       User.hasMany(models.Reservation, {
         foreignKey: "user_id",
-        as: "reservations",
+        // as: "reservations",
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
       });

@@ -23,6 +23,7 @@ const reservationDetailRoute = require("./reservation_detail.route");
 const rolePermissionRoleRoute = require("./roles_permissions.route");
 const roleRoute = require("./roles.route");
 const tableRoute = require("./tables.route");
+const revenueRoute = require("./revenue.route");
 const authenticateToken = require("../middlewares/auth.middleware");
 
 //public routes
@@ -44,7 +45,7 @@ router.use("/promotions", authenticateToken, promotionRoute);
 router.use("/tables", authenticateToken, tableRoute);
 router.use("/comment-blog", authenticateToken, commentBlogRoute);
 router.use("/reservations_t_admin", authenticateToken, reservationAdminRoute);
-// router.use("/statistical", authenticateToken, statistical);
+router.use("/statistical", authenticateToken, revenueRoute);
 // router.use("/email", authenticateToken, sendEmail);
 
 // Public Routes

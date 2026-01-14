@@ -1,8 +1,8 @@
-const db = require("../models");
+const { ReservationDetail, sequelize } = require("../models/index");
 
 const getAllReservationDetails = async (transaction = null) => {
   try {
-    const data = await db.ReservationDetail.findAll({
+    const data = await ReservationDetail.findAll({
       transaction,
     });
 
@@ -13,7 +13,7 @@ const getAllReservationDetails = async (transaction = null) => {
 };
 const getReservationDetailById = async (id, transaction = null) => {
   try {
-    const reservationDetail = await db.ReservationDetail.findByPk(id, {
+    const reservationDetail = await ReservationDetail.findByPk(id, {
       transaction,
     });
 
@@ -26,9 +26,37 @@ const getReservationDetailById = async (id, transaction = null) => {
     throw error;
   }
 };
+const createReservationDetailService = async (data) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const { reservation_id, product_id, quantity, price } = data;
+
+    const reservationDetail = await ReservationDetail.create(
+      {
+        reservation_id,
+        product_id,
+        quantity,
+        price,
+      },
+      { transaction }
+    );
+
+    await transaction.commit();
+
+    return reservationDetail;
+  } catch (error) {
+    await transaction.rollback();
+    console.log("error detail", error);
+    throw {
+      status: 500,
+      message: "Failed to create reservation detail",
+    };
+  }
+};
 const updateReservationDetailById = async (id, data, transaction) => {
   try {
-    const reservationDetail = await db.ReservationDetail.findByPk(id, {
+    const reservationDetail = await ReservationDetail.findByPk(id, {
       transaction,
     });
 
@@ -53,7 +81,7 @@ const updateReservationDetailById = async (id, data, transaction) => {
 };
 const deleteReservationDetailById = async (id, transaction) => {
   try {
-    const reservationDetail = await db.ReservationDetail.findByPk(id, {
+    const reservationDetail = await ReservationDetail.findByPk(id, {
       transaction,
     });
 
@@ -73,4 +101,5 @@ module.exports = {
   getReservationDetailById,
   updateReservationDetailById,
   deleteReservationDetailById,
+  createReservationDetailService,
 };

@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       // Một chi tiết đặt bàn thuộc về một đơn đặt bàn
       ReservationDetail.belongsTo(models.Reservation, {
         foreignKey: "reservation_id",
-        as: "reservation",
+        // as: "reservation",
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       });
@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       // Một chi tiết đặt bàn thuộc về một sản phẩm
       ReservationDetail.belongsTo(models.Product, {
         foreignKey: "product_id",
-        as: "product",
+        // as: "product",
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       });

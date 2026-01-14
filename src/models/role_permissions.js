@@ -7,14 +7,14 @@ module.exports = (sequelize, DataTypes) => {
       // Bảng trung gian, nên chỉ cần khai báo belongsTo để hỗ trợ truy vấn ngược
       RolePermission.belongsTo(models.Role, {
         foreignKey: "role_id",
-        as: "role",
+        // as: "role",
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       });
 
       RolePermission.belongsTo(models.Permission, {
         foreignKey: "permission_id",
-        as: "permission",
+        // as: "permission",
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       });

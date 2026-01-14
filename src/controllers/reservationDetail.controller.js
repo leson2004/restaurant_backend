@@ -1,8 +1,8 @@
-const db = require("../models");
+const { sequelize } = require("../models/index");
 const reservationDetailService = require("../services/reservationDetail.service");
 
 const getAllReservationDetails = async (req, res) => {
-  const transaction = await db.sequelize.transaction();
+  const transaction = await sequelize.transaction();
   try {
     // 👉 Không cần validate dữ liệu đầu vào vì không có params/body
 
@@ -22,7 +22,7 @@ const getAllReservationDetails = async (req, res) => {
   }
 };
 const getReservationDetailById = async (req, res) => {
-  const transaction = await db.sequelize.transaction();
+  const transaction = await sequelize.transaction();
   try {
     const { id } = req.params;
 
@@ -55,8 +55,39 @@ const getReservationDetailById = async (req, res) => {
     });
   }
 };
+const createReservationDetail = async (req, res) => {
+  try {
+    const { reservation_id, product_id, quantity, price } = req.body;
+
+    // ✅ Validate trong controller
+    if (!reservation_id || !product_id || !quantity || !price) {
+      return res.status(400).json({
+        error: "reservation_id, product_id, quantity và price là bắt buộc",
+      });
+    }
+
+    const result =
+      await reservationDetailService.createReservationDetailService({
+        reservation_id,
+        product_id,
+        quantity,
+        price,
+      });
+
+    return res.status(201).json({
+      message: "Reservation detail created successfully",
+      id: result.id,
+    });
+  } catch (error) {
+    console.error("Create reservation detail error:", error);
+
+    return res.status(error.status || 500).json({
+      error: error.message || "Failed to create reservation detail",
+    });
+  }
+};
 const updateReservationDetailById = async (req, res) => {
-  const transaction = await db.sequelize.transaction();
+  const transaction = await sequelize.transaction();
 
   try {
     const { id } = req.params;
@@ -111,7 +142,7 @@ const updateReservationDetailById = async (req, res) => {
   }
 };
 const deleteReservationDetailById = async (req, res) => {
-  const transaction = await db.sequelize.transaction();
+  const transaction = await sequelize.transaction();
 
   try {
     const { id } = req.params;
@@ -151,4 +182,5 @@ module.exports = {
   getReservationDetailById,
   updateReservationDetailById,
   deleteReservationDetailById,
+  createReservationDetail,
 };

@@ -112,6 +112,56 @@ const addTableToReservation = async (req, res) => {
   }
 };
 //getAllReservationsService
+const getAllReservations = async (req, res) => {
+  try {
+    const {
+      searchName = "",
+      searchPhone = "",
+      searchEmail = "",
+      status = "",
+      reservation_code = "",
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+
+    // ✅ Validate trong controller
+    if (pageNumber <= 0 || limitNumber <= 0) {
+      return res.status(400).json({
+        message: "Page và limit phải là số dương",
+      });
+    }
+
+    const { totalCount, reservations } =
+      await reservationAdminService.getAllReservationsService({
+        searchName,
+        searchPhone,
+        searchEmail,
+        status,
+        reservation_code,
+        page: pageNumber,
+        limit: limitNumber,
+      });
+
+    res.status(200).json({
+      message: "Show list reservations successfully",
+      results: reservations,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limitNumber),
+      currentPage: pageNumber,
+      limit: limitNumber,
+    });
+  } catch (error) {
+    console.error("Get reservations error:", error);
+    res.status(500).json({
+      message: "Failed to fetch reservations",
+      error: error.message,
+    });
+  }
+};
+
 const getMyBookings = async (req, res) => {
   try {
     const { user_id } = req.params;
@@ -392,4 +442,5 @@ module.exports = {
   filterByDate,
   getMyBookings,
   deleteReservationDetail,
+  getAllReservations,
 };

@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { User, MembershipCard, sequelize } = "../models/index";
+const { User, MembershipCard, sequelize } = require("../models/index");
 const bcrypt = require("bcrypt");
 const getUsersService = async (filters) => {
   const transaction = await sequelize.transaction();

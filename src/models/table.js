@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       // Một bàn có thể có nhiều đơn đặt bàn (reservations)
       Table.hasMany(models.Reservation, {
         foreignKey: "table_id",
-        as: "reservations",
+        // as: "reservations",
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
       });

@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       // Một đơn đặt bàn thuộc về 1 user
       Reservation.belongsTo(models.User, {
         foreignKey: "user_id",
-        as: "user",
+        // as: "user",
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
       });
@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       // Một đơn đặt bàn thuộc về 1 bàn (table)
       Reservation.belongsTo(models.Table, {
         foreignKey: "table_id",
-        as: "table",
+        // as: "table",
         onUpdate: "CASCADE",
         onDelete: "RESTRICT",
       });
@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       // Một đơn đặt bàn có thể gắn 1 khuyến mãi
       Reservation.belongsTo(models.Promotion, {
         foreignKey: "promotion_id",
-        as: "promotion",
+        // as: "promotion",
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
       });
@@ -31,7 +31,13 @@ module.exports = (sequelize, DataTypes) => {
       // Một đơn đặt bàn có thể chứa nhiều chi tiết món ăn
       Reservation.hasMany(models.ReservationDetail, {
         foreignKey: "reservation_id",
-        as: "details",
+        // as: "details",
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      });
+      Reservation.hasMany(models.ChangeDish, {
+        foreignKey: "reservation_id",
+        // as: "changedishes", // nên đặt alias cho rõ
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       });

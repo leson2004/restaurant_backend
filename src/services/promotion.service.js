@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const Promotion = require("../models/index");
+const { Promotion } = require("../models/index");
 
 const getAllPromotions = async ({ search, page, limit }) => {
   try {

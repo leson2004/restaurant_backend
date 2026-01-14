@@ -3,8 +3,9 @@ const {
   Reservation,
   ReservationDetail,
   Promotion,
-  Changedish,
+  ChangeDish,
   Table,
+  Product,
 } = require("../models/index");
 const { Op, fn, col, where } = require("sequelize");
 const changeDishesService = async (
@@ -148,7 +149,78 @@ const addTableToReservationService = async (reservationID) => {
   }
 };
 //getAllReservationsService
+const getAllReservationsService = async (filters) => {
+  const {
+    searchName,
+    searchPhone,
+    searchEmail,
+    status,
+    reservation_code,
+    page,
+    limit,
+  } = filters;
 
+  const offset = (page - 1) * limit;
+
+  const transaction = await sequelize.transaction();
+
+  try {
+    const whereCondition = {
+      fullname: { [Op.like]: `%${searchName}%` },
+      tel: { [Op.like]: `%${searchPhone}%` },
+      email: { [Op.like]: `%${searchEmail}%` },
+      status: { [Op.like]: `%${status}%` },
+      reservation_code: { [Op.like]: `%${reservation_code}%` },
+    };
+
+    const totalCount = await Reservation.count({
+      where: whereCondition,
+      transaction,
+    });
+
+    const reservations = await Reservation.findAll({
+      where: whereCondition,
+      include: [
+        {
+          model: Table,
+          attributes: [["number", "tableName"]],
+        },
+        {
+          model: Promotion,
+          attributes: ["discount"],
+        },
+        {
+          model: ChangeDish,
+          attributes: [
+            "product_id",
+            "quantity",
+            "price",
+            "total_amount",
+            "productName",
+            "productImage",
+            "taxMoney",
+            "reducedMoney",
+          ],
+          required: false,
+        },
+      ],
+      order: [["id", "DESC"]],
+      limit,
+      offset,
+      transaction,
+    });
+
+    await transaction.commit();
+
+    return {
+      totalCount,
+      reservations,
+    };
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
 const getMyBookingsService = async (userId, query) => {
   try {
     const {
@@ -545,6 +617,7 @@ const filterTablesByDate = async ({ date, page, pageSize }) => {
 };
 module.exports = {
   changeDishesService,
+  getAllReservationsService,
   markReservationNotChangeService,
   addTableToReservationService,
   getMyBookingsService,

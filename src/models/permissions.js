@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
         through: "role_permissions", // bảng trung gian
         foreignKey: "permission_id", // khóa ngoại trỏ về permission
         otherKey: "role_id", // khóa ngoại trỏ về role
-        as: "roles", // alias để gọi trong include
+        // as: "roles", // alias để gọi trong include
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       });

@@ -1,5 +1,4 @@
-import { sequelize } from "../configs/database.js";
-import Reservation from "../models/reservation.model.js";
+import { Reservation, sequelize } from "../models/index";
 
 const statusMapping = {
   0: "Hủy đơn",

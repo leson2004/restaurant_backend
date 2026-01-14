@@ -5,7 +5,7 @@ let router = express.Router();
 router.post("/changedishes", reservationAdminController.changeDishes);
 router.patch("/notChange", reservationAdminController.markReservationNotChange);
 router.post("/addTable", reservationAdminController.addTableToReservation);
-// router.get('/',reservationAdminController.)
+router.get("/", reservationAdminController.getAllReservations);
 router.get("/myBooking/:user_id", reservationAdminController.getMyBookings);
 router.get("/:id", reservationAdminController.getReservationById);
 router.get(

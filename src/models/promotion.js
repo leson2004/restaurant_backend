@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       // Một khuyến mãi có thể được áp dụng cho nhiều đơn đặt bàn (reservations)
       Promotion.hasMany(models.Reservation, {
         foreignKey: "promotion_id",
-        as: "reservations",
+        // as: "reservations",
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
       });
