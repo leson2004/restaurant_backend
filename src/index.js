@@ -6,6 +6,7 @@ import initWebRoutes from "./routes/index";
 import viewEngine from "./config/viewEngine";
 import connectDB from "./config/connectDB";
 import chatSocket from "./sockets/chat.socket";
+import startReservationExpiryJob from "./jobs/reservationExpiry.job";
 require("dotenv").config();
 
 const app = express();
@@ -20,6 +21,10 @@ viewEngine(app);
 connectDB();
 app.use("/api", initWebRoutes);
 chatSocket(io);
+
+// Start scheduled jobs
+startReservationExpiryJob();
+
 server.listen(port, () => {
   console.log(`the port run in ${port} `);
 });

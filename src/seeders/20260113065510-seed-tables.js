@@ -2,47 +2,67 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.bulkInsert(
-      "tables",
-      [
-        {
-          number: 1,
-          capacity: 2,
-          status: 0, // trống
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-        {
-          number: 2,
-          capacity: 4,
-          status: 0,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-        {
-          number: 3,
-          capacity: 4,
-          status: 0, // đang phục vụ
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-        {
-          number: 4,
-          capacity: 6,
-          status: 0,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-        {
-          number: 5,
-          capacity: 8,
-          status: 0,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      ],
-      {}
-    );
+    // Xóa dữ liệu cũ để tránh trùng và đảm bảo đúng schema
+    await queryInterface.bulkDelete("tables", null, {});
+
+    await queryInterface.bulkInsert("tables", [
+      {
+        code: "T01",
+        capacity: 2,
+        is_active: true,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        code: "T02",
+        capacity: 2,
+        is_active: true,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        code: "T03",
+        capacity: 4,
+        is_active: true,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        code: "T04",
+        capacity: 4,
+        is_active: true,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        code: "T05",
+        capacity: 6,
+        is_active: true,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        code: "T06",
+        capacity: 6,
+        is_active: true,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        code: "T07",
+        capacity: 8,
+        is_active: true,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        code: "T08",
+        capacity: 10,
+        is_active: true,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+    ]);
   },
 
   async down(queryInterface, Sequelize) {

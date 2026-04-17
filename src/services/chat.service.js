@@ -11,8 +11,14 @@ const getOrCreateRoom = async (customerId) => {
   return ChatRoom.create({ customer_id: customerId });
 };
 
-// Tạo tin nhắn (CÓ TRANSACTION)
-const createMessage = async ({ roomId, senderRole, senderId, message }) => {
+// Tạo tin nhắn (CÓ TRANSACTION). attachments optional: { images?, link? } for bot rich reply (stored for history).
+const createMessage = async ({
+  roomId,
+  senderRole,
+  senderId,
+  message,
+  attachments = null,
+}) => {
   const transaction = await sequelize.transaction();
 
   try {
@@ -22,6 +28,7 @@ const createMessage = async ({ roomId, senderRole, senderId, message }) => {
         sender_role: senderRole,
         sender_id: senderId,
         message,
+        attachments: attachments || null,
       },
       { transaction }
     );
@@ -72,10 +79,17 @@ const getAdminRooms = async () => {
     order: [["last_message_at", "DESC"]],
   });
 };
-
+// ✅ Lấy tin nhắn theo roomId (admin dùng)
+const getMessagesByRoomId = async (roomId) => {
+  return ChatMessage.findAll({
+    where: { room_id: roomId },
+    order: [["created_at", "ASC"]],
+  });
+};
 module.exports = {
   getOrCreateRoom,
   getMessagesByUser,
   createMessage,
   getAdminRooms,
+  getMessagesByRoomId,
 };

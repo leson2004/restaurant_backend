@@ -8,7 +8,7 @@ const sendChangeDish = async (req, res) => {
     const { dishes, dishList, customerInfo, currentTotal, VAT10, discount } =
       req.body;
 
-    // ✅ Validate cơ bản
+    //  Validate cơ bản
     if (!customerInfo || !dishList?.length) {
       await transaction.rollback();
       return res.status(400).json({
@@ -25,7 +25,7 @@ const sendChangeDish = async (req, res) => {
         VAT10,
         discount,
       },
-      transaction
+      transaction,
     );
 
     await transaction.commit();

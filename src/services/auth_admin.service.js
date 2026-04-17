@@ -96,7 +96,7 @@ export const forgotPasswordService = async (email) => {
       {
         where: { email },
         transaction,
-      }
+      },
     );
 
     // 4. Gửi email
@@ -115,7 +115,7 @@ export const forgotPasswordService = async (email) => {
     const mailOptions = {
       from: process.env.EMAIL_USERNAME,
       to: email,
-      subject: "[No-reply] - Đặt lại mật khẩu - Nhà hàng Hương Sen",
+      subject: "[No-reply] - Đặt lại mật khẩu - Nhà hàng Hương Việt",
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
           <h2>Đặt lại mật khẩu</h2>
@@ -177,7 +177,7 @@ export const changePasswordService = async ({ token, newPassword }) => {
       {
         where: { id: user.id },
         transaction,
-      }
+      },
     );
 
     await transaction.commit();

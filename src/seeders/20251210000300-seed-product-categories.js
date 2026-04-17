@@ -26,6 +26,27 @@ module.exports = {
           createdAt: new Date(),
           updatedAt: new Date(),
         },
+        {
+          id: 4,
+          name: "Tráng miệng",
+          status: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 5,
+          name: "Combo gia đình",
+          status: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 6,
+          name: "Đồ nướng",
+          status: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
       ],
       {}
     );

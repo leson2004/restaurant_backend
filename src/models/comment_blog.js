@@ -41,6 +41,25 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
+      toxicity_score: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        defaultValue: null,
+      },
+      moderation_status: {
+        type: DataTypes.ENUM("approved", "hidden", "rejected"),
+        defaultValue: "approved",
+        allowNull: false,
+      },
+      moderation_reason: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      is_deleted: {
+        type: DataTypes.TINYINT,
+        defaultValue: 0,
+        allowNull: false,
+      },
       created_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,

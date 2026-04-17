@@ -1,9 +1,9 @@
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-import crypto from "crypto";
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 require("dotenv").config();
 
-import sendResetPasswordEmail from "../utils/mailer";
+const sendResetPasswordEmail = require("../utils/mailer");
 const {
   User,
   MembershipCard,
@@ -31,7 +31,7 @@ const googleLogin = async ({ fullname, email, avatar }) => {
           avatar: user.avatar,
         },
         JWT_SECRET,
-        { expiresIn: "3h" }
+        { expiresIn: "3h" },
       );
 
       const userJson = user.toJSON();
@@ -61,7 +61,7 @@ const googleLogin = async ({ fullname, email, avatar }) => {
         name: user.fullname,
       },
       JWT_SECRET,
-      { expiresIn: "3h" }
+      { expiresIn: "3h" },
     );
 
     const userJson = user.toJSON();
@@ -76,6 +76,18 @@ const googleLogin = async ({ fullname, email, avatar }) => {
     throw new Error("Không thể đăng nhập bằng Google");
   }
 };
+const checkEmailExists = async (email) => {
+  try {
+    const user = await User.findOne({
+      where: { email },
+    });
+
+    return user;
+  } catch (error) {
+    throw new Error("Failed to check email");
+  }
+};
+
 const facebookLogin = async ({ fullname, email, avatar }) => {
   try {
     let user = await User.findOne({ where: { email } });
@@ -88,7 +100,7 @@ const facebookLogin = async ({ fullname, email, avatar }) => {
           avatar: user.avatar,
         },
         JWT_SECRET,
-        { expiresIn: "3h" }
+        { expiresIn: "3h" },
       );
       // lấy user không có mật khẩu .
       const userJson = user.toJSON();
@@ -116,7 +128,7 @@ const facebookLogin = async ({ fullname, email, avatar }) => {
         name: user.fullname,
       },
       JWT_SECRET,
-      { expiresIn: "3h" }
+      { expiresIn: "3h" },
     );
 
     const userJson = user.toJSON();
@@ -159,7 +171,7 @@ const register = async (data) => {
         password: hashedPassword,
         user_type: "Nhân Viên",
       },
-      { transaction }
+      { transaction },
     );
 
     // 4. Lấy membership tier "Mới"
@@ -180,7 +192,7 @@ const register = async (data) => {
         membership_card_id: tier.id,
         point: 0,
       },
-      { transaction }
+      { transaction },
     );
 
     await transaction.commit();
@@ -219,7 +231,7 @@ const login = async ({ email, password }) => {
       avatar: user.avatar,
     },
     JWT_SECRET,
-    { expiresIn: "1h" }
+    { expiresIn: "1h" },
   );
 
   // 4. Remove password
@@ -289,4 +301,5 @@ module.exports = {
   login,
   forgotPassword,
   changePassword,
+  checkEmailExists,
 };

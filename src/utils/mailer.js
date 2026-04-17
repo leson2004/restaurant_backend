@@ -17,7 +17,7 @@ const sendResetPasswordEmail = async (email, token) => {
   const mailOptions = {
     from: process.env.EMAIL_USERNAME,
     to: email,
-    subject: "[No-reply] - Đặt lại mật khẩu - Nhà hàng Hương Sen",
+    subject: "[No-reply] - Đặt lại mật khẩu - Nhà hàng Hương Việt",
     html: `
        <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản của mình.</p>
                         <p>Vui lòng nhấn vào nút bên dưới để đặt lại mật khẩu:</p>

@@ -1,7 +1,12 @@
 const { CommentBlog, User, sequelize } = require("../models/index");
 const { Op } = require("sequelize");
 
-const getComments = async ({ searchName, page, limit }) => {
+const getComments = async ({
+  searchName,
+  page,
+  limit,
+  includeAllStatuses = false,
+}) => {
   const transaction = await sequelize.transaction();
 
   try {
@@ -13,7 +18,11 @@ const getComments = async ({ searchName, page, limit }) => {
       content: {
         [Op.like]: `%${searchName}%`,
       },
+      is_deleted: 0,
     };
+    if (!includeAllStatuses) {
+      whereCondition.moderation_status = "approved";
+    }
 
     // 🔢 Đếm tổng số comment
     const totalCount = await CommentBlog.count({
@@ -53,7 +62,12 @@ const getComments = async ({ searchName, page, limit }) => {
     throw error;
   }
 };
-const getCommentsByBlogId = async ({ blog_id, page, limit }) => {
+const getCommentsByBlogId = async ({
+  blog_id,
+  page,
+  limit,
+  includeAllStatuses = false,
+}) => {
   const transaction = await sequelize.transaction();
 
   try {
@@ -61,17 +75,18 @@ const getCommentsByBlogId = async ({ blog_id, page, limit }) => {
     const pageNumber = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
     const offset = (pageNumber - 1) * limitNumber;
 
-    // 🔢 Đếm tổng comment theo blog_id
+    const whereBase = { blog_id, is_deleted: 0 };
+    if (!includeAllStatuses) whereBase.moderation_status = "approved";
+
     const totalCount = await CommentBlog.count({
-      where: { blog_id },
+      where: whereBase,
       transaction,
     });
 
     const totalPages = Math.ceil(totalCount / limitNumber);
 
-    // 📄 Lấy danh sách comment + user
     const results = await CommentBlog.findAll({
-      where: { blog_id },
+      where: whereBase,
       include: [
         {
           model: User,
@@ -99,7 +114,15 @@ const getCommentsByBlogId = async ({ blog_id, page, limit }) => {
     throw error;
   }
 };
-const createComment = async ({ blog_id, user_id, content }) => {
+const createComment = async ({
+  blog_id,
+  user_id,
+  content,
+  toxicity_score = null,
+  moderation_status = "approved",
+  moderation_reason = null,
+  is_deleted = 0,
+}) => {
   const transaction = await sequelize.transaction();
 
   try {
@@ -108,6 +131,10 @@ const createComment = async ({ blog_id, user_id, content }) => {
         blog_id,
         user_id,
         content,
+        toxicity_score,
+        moderation_status,
+        moderation_reason,
+        is_deleted,
       },
       { transaction }
     );
@@ -119,7 +146,14 @@ const createComment = async ({ blog_id, user_id, content }) => {
     throw error;
   }
 };
-const updateCommentById = async ({ id, customer_id, content }) => {
+const updateCommentById = async ({
+  id,
+  customer_id,
+  content,
+  toxicity_score = null,
+  moderation_status = null,
+  moderation_reason = null,
+}) => {
   const transaction = await sequelize.transaction();
 
   try {
@@ -132,13 +166,15 @@ const updateCommentById = async ({ id, customer_id, content }) => {
       };
     }
 
-    await comment.update(
-      {
-        customer_id,
-        content,
-      },
-      { transaction }
-    );
+    const updates = { content };
+    if (customer_id !== undefined) updates.user_id = customer_id;
+    if (toxicity_score !== undefined && toxicity_score !== null)
+      updates.toxicity_score = toxicity_score;
+    if (moderation_status) updates.moderation_status = moderation_status;
+    if (moderation_reason !== undefined)
+      updates.moderation_reason = moderation_reason;
+
+    await comment.update(updates, { transaction });
 
     await transaction.commit();
     return true;
@@ -183,7 +219,13 @@ const deleteCommentById = async (id) => {
       };
     }
 
-    await comment.destroy({ transaction });
+    // 🗑️ Soft delete: chỉ set is_deleted = 1 thay vì xóa hoàn toàn
+    await comment.update(
+      {
+        is_deleted: 1,
+      },
+      { transaction }
+    );
 
     await transaction.commit();
     return true;

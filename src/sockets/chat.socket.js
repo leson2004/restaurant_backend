@@ -14,7 +14,7 @@ module.exports = (io) => {
     // Gửi tin nhắn
     socket.on("send-message", async (data) => {
       try {
-        const { roomId, senderRole, senderId, message, toBot } = data;
+        const { tempId, roomId, senderRole, senderId, message, toBot } = data;
 
         // Validate cơ bản (socket level)
         if (!roomId || !senderRole || !message) {
@@ -32,6 +32,7 @@ module.exports = (io) => {
         // 2️⃣ Emit realtime
         io.to(`room_${roomId}`).emit("receive-message", {
           id: savedMessage.id,
+          tempId,
           roomId,
           senderRole,
           senderId,
@@ -39,15 +40,25 @@ module.exports = (io) => {
           created_at: savedMessage.created_at,
         });
 
-        // 3️⃣ Nếu customer hỏi bot
+        // 3️⃣ Nếu customer hỏi bot (truyền senderId để bot trả lời được câu hỏi về đơn đặt bàn của khách)
         if (senderRole === "customer" && toBot) {
-          const botReply = await GeminiService.chatWithCustomer(message);
+          const botReply = await GeminiService.chatWithCustomer(message, {
+            customerId: senderId ?? null,
+          });
+
+          const isRichReply =
+            typeof botReply === "object" &&
+            botReply !== null &&
+            "text" in botReply;
+          const messageText = isRichReply ? botReply.text : botReply;
+          const messageAttachments = isRichReply ? botReply.attachments : null;
 
           const botMessage = await chatService.createMessage({
             roomId,
             senderRole: "bot",
             senderId: null,
-            message: botReply,
+            message: messageText,
+            attachments: messageAttachments,
           });
 
           io.to(`room_${roomId}`).emit("receive-message", {
@@ -55,7 +66,8 @@ module.exports = (io) => {
             roomId,
             senderRole: "bot",
             senderId: null,
-            message: botReply,
+            message: messageText,
+            attachments: messageAttachments,
             created_at: botMessage.created_at,
           });
         }

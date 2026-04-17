@@ -3,7 +3,7 @@ const nodemailer = require("nodemailer");
 
 const sendChangeDishRequest = async (
   { dishes, dishList, customerInfo, currentTotal, VAT10, discount },
-  transaction
+  transaction,
 ) => {
   // 1. Insert changedishes
   for (const dish of dishList) {
@@ -14,12 +14,12 @@ const sendChangeDishRequest = async (
         quantity: dish.quantity,
         price: dish.price,
         total_amount: currentTotal + VAT10 - discount,
-        productName: dish.product_name,
-        productImage: dish.product_image,
+        productName: dish.Product.product_name,
+        productImage: dish.Product.product_image,
         taxMoney: VAT10,
         reducedMoney: discount,
       },
-      { transaction }
+      { transaction },
     );
   }
 
@@ -42,15 +42,15 @@ const sendChangeDishRequest = async (
 
   const now = new Date();
   const formattedDateTime = `${now.toLocaleDateString(
-    "vi-VN"
+    "vi-VN",
   )} lúc ${now.toLocaleTimeString("vi-VN")}`;
 
   const oldDishListHtml = dishes
     .map(
       (d) =>
         `<li>${d.product_name} - ${d.quantity} x ${formatCurrency(
-          d.price
-        )}</li>`
+          d.price,
+        )}</li>`,
     )
     .join("");
 
@@ -58,13 +58,13 @@ const sendChangeDishRequest = async (
     .map(
       (d) =>
         `<li>${d.product_name} - ${d.quantity} x ${formatCurrency(
-          d.price
-        )}</li>`
+          d.price,
+        )}</li>`,
     )
     .join("");
 
   const mailCustomer = {
-    from: `"Nhà hàng Hương Sen" <${process.env.EMAIL_USERNAME}>`,
+    from: `"Nhà hàng Hương Việt" <${process.env.EMAIL_USERNAME}>`,
     to: customerInfo.email,
     subject: "[No-reply] - Yêu cầu thay đổi món ăn",
     html: `
@@ -73,13 +73,13 @@ const sendChangeDishRequest = async (
             <h4>Món cũ:</h4><ul>${oldDishListHtml}</ul>
             <h4>Món mới:</h4><ul>${newDishListHtml}</ul>
             <p><b>Tổng tiền mới:</b> ${formatCurrency(
-              currentTotal + VAT10 - discount
+              currentTotal + VAT10 - discount,
             )}</p>
         `,
   };
 
   const mailRestaurant = {
-    from: `"Nhà hàng Hương Sen" <${process.env.EMAIL_USERNAME}>`,
+    from: `"Nhà hàng Hương Việt" <${process.env.EMAIL_USERNAME}>`,
     to: process.env.EMAIL_EMPLOYYER,
     subject: "[Thông báo] - Khách hàng yêu cầu đổi món",
     html: mailCustomer.html,
@@ -91,7 +91,7 @@ const sendChangeDishRequest = async (
   // 3. Update reservation
   await Reservation.update(
     { number_change: 0 },
-    { where: { id: customerInfo.id }, transaction }
+    { where: { id: customerInfo.id }, transaction },
   );
 };
 

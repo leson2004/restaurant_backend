@@ -4,7 +4,7 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Promotion extends Model {
     static associate(models) {
-      // Một khuyến mãi có thể được áp dụng cho nhiều đơn đặt bàn (reservations)
+      //Một khuyến mãi có thể được áp dụng cho nhiều đơn đặt bàn (reservations)
       Promotion.hasMany(models.Reservation, {
         foreignKey: "promotion_id",
         // as: "reservations",
@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
       type: {
         type: DataTypes.TINYINT,
         allowNull: false,
-        defaultValue: 0, // 0: %, 1: tiền mặt
+        defaultValue: 0, // 0: mã thường, 1:mã đặc biệt
       },
       quantity: {
         type: DataTypes.INTEGER,
@@ -65,7 +65,7 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "Promotion",
       tableName: "promotions",
       timestamps: false, // vì bạn đã dùng created_at và updated_at thủ công
-    }
+    },
   );
 
   return Promotion;

@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": null,
-    "database": "restaurant_db",
+    "database": "huongviet_restaurant",
     "host": "127.0.0.1",
     "dialect": "mysql",
     "port": 3307

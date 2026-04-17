@@ -24,7 +24,7 @@ module.exports = {
         tel: "0909000002",
         address: "TP.HCM",
         password: "$2b$10$0ZK9D0lZ9s9zP0FJ6E6P8eK5xQqLqj8Z9Z4lJ0Xnq6GZK3yZ0W",
-        role_id: 2,
+        role_id: 11, // khớp với role "Nhân Viên" trong seed-roles
         user_type: "Nhân Viên",
         salary: 12000000,
         status: 1,

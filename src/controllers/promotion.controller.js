@@ -2,6 +2,17 @@ const PromotionService = require("../services/promotion.service");
 
 const getAll = async (req, res) => {
   try {
+    const { type, valid_now } = req.query;
+
+    // Public API: GET /api/public/promotion?type=1&valid_now=1 — list special valid promotions with discount_type
+    if (type !== undefined && type !== null && valid_now !== undefined && valid_now !== null) {
+      const results = await PromotionService.getValidPromotionsForPublic({
+        type: type === "" ? undefined : type,
+        valid_now: valid_now === "1" || valid_now === 1 ? 1 : 0,
+      });
+      return res.status(200).json({ results });
+    }
+
     const { search = "", page = 1, limit = 10 } = req.query;
 
     // ✅ Validate trong controller

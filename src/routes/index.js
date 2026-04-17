@@ -23,7 +23,8 @@ const reservationDetailRoute = require("./reservation_detail.route");
 const rolePermissionRoleRoute = require("./roles_permissions.route");
 const roleRoute = require("./roles.route");
 const tableRoute = require("./tables.route");
-const revenueRoute = require("./revenue.route");
+const revenueRoute = require("./revenue.route");const dashboardRoute = require("./dashboard.route");const chatRoute = require("./chat.route");
+const sendEmailChangeDish = require("./sendEmail.route");
 const authenticateToken = require("../middlewares/auth.middleware");
 
 //public routes
@@ -46,7 +47,8 @@ router.use("/tables", authenticateToken, tableRoute);
 router.use("/comment-blog", authenticateToken, commentBlogRoute);
 router.use("/reservations_t_admin", authenticateToken, reservationAdminRoute);
 router.use("/statistical", authenticateToken, revenueRoute);
-// router.use("/email", authenticateToken, sendEmail);
+router.use("/statistical", authenticateToken, dashboardRoute);
+router.use("/email", authenticateToken, sendEmailChangeDish);
 
 // Public Routes
 router.use("/public/category-product", productCategoryRoute);
@@ -64,6 +66,7 @@ router.use("/public/membership_tiers", membershipTierRoute);
 
 // Normal Routes
 // router.use("/chatbot", chatbotApi);
+router.use("/chat", chatRoute);
 router.use("/auth", authRoute);
 router.use("/auth_admin", authAdminRoute);
 router.use("/users", userRoute);

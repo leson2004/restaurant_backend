@@ -40,11 +40,11 @@ const filterTablesByDate = async (req, res) => {
   try {
     const { date, page = 1, limit = 10, searchCapacity = "" } = req.query;
 
-    if (!date) {
-      return res.status(400).json({
-        message: "date là bắt buộc (YYYY-MM-DD)",
-      });
-    }
+    // if (!date) {
+    //   return res.status(400).json({
+    //     message: "date là bắt buộc (YYYY-MM-DD)",
+    //   });
+    // }
 
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
@@ -55,7 +55,7 @@ const filterTablesByDate = async (req, res) => {
       });
     }
 
-    const data = await filterTablesByDateService({
+    const data = await tableService.filterTablesByDateService({
       date,
       page: pageNumber,
       limit: limitNumber,
@@ -75,28 +75,22 @@ const filterTablesByDate = async (req, res) => {
 };
 const createTable = async (req, res) => {
   try {
-    const { number, capacity, status } = req.body;
+    const { number, capacity, status = 1 } = req.body;
 
-    // Validate
-    if (number === undefined || number < 0) {
+    // Validate (number/code có thể là số hoặc chuỗi như "T01")
+    if (number === undefined || number === null || String(number).trim() === "") {
       return res.status(400).json({
-        message: "Số bàn là bắt buộc và không được âm",
+        message: "Số bàn là bắt buộc",
       });
     }
 
-    if (capacity === undefined || capacity < 0 || capacity > 8) {
+    if (capacity === undefined || capacity === null || capacity < 0 || capacity > 8) {
       return res.status(400).json({
         message: "Số lượng người không được âm và không được quá 8 người",
       });
     }
 
-    if (status === undefined) {
-      return res.status(400).json({
-        message: "Trạng thái là bắt buộc",
-      });
-    }
-
-    const table = await createTableService({ number, capacity, status });
+    const table = await tableService.createTableService({ number, capacity, status });
 
     return res.status(201).json({
       message: "Thêm bàn thành công",
@@ -127,25 +121,19 @@ const updateTable = async (req, res) => {
       });
     }
 
-    if (number === undefined || number < 0) {
+    if (number !== undefined && number !== null && String(number).trim() === "") {
       return res.status(400).json({
-        message: "Số bàn là bắt buộc và không được âm",
+        message: "Số bàn không được để trống",
       });
     }
 
-    if (capacity === undefined || capacity < 0 || capacity > 8) {
+    if (capacity !== undefined && (capacity < 0 || capacity > 8)) {
       return res.status(400).json({
         message: "Số lượng người không được âm và không được quá 8 người",
       });
     }
 
-    if (status === undefined) {
-      return res.status(400).json({
-        message: "Trạng thái là bắt buộc",
-      });
-    }
-
-    await updateTableService({
+    await tableService.updateTableService({
       id,
       number,
       capacity,
@@ -247,9 +235,8 @@ const getReservationsByTableId = async (req, res) => {
       });
     }
 
-    const reservations = await reservationService.getReservationsByTableId(
-      table_id
-    );
+    const reservations =
+      await tableService.getReservationsByTableId(table_id);
 
     return res.status(200).json({
       message: "Hiển thị thông tin đặt bàn thành công",
@@ -268,6 +255,76 @@ const getReservationsByTableId = async (req, res) => {
     });
   }
 };
+
+// Get available tables for a specific date/time range (for admin quick reservation)
+const getAvailableTables = async (req, res) => {
+  try {
+    // Two modes supported:
+    // 1) old quick reservation (date, start, end, party_size)
+    // 2) new confirmed flow (start_time, end_time, party_size)
+    const { date, start, end, party_size } = req.query;
+    const { start_time, end_time } = req.query;
+
+    // if new-style params provided use reservationAdmin service
+    if (start_time && end_time && party_size) {
+      const data = await require("../services/reservationAdmin.service.js").getAvailableTablesService({
+        start_time,
+        end_time,
+        party_size: parseInt(party_size, 10),
+      });
+      return res.status(200).json(data);
+    }
+
+    // otherwise fallback to old behavior
+    if (!date || !start || !end || !party_size) {
+      return res.status(400).json({
+        message: "date, start, end, and party_size are required",
+      });
+    }
+
+    const { getAvailableTablesService } =
+      await import("../services/reservation.service.js");
+
+    const availableTables = await getAvailableTablesService(
+      date,
+      start,
+      end,
+      party_size,
+    );
+
+    return res.status(200).json(availableTables);
+  } catch (error) {
+    console.error("Get available tables error:", error);
+
+    // propagate new-style errors first
+    if (error.message === "MISSING_PARAMETERS") {
+      return res.status(400).json({
+        message: "start_time, end_time and party_size are required",
+      });
+    }
+
+    if (error.message === "MISSING_REQUIRED_FIELDS") {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    if (error.message === "INVALID_DATE_FORMAT") {
+      return res.status(400).json({ message: "Invalid date format" });
+    }
+
+    if (error.message === "INVALID_TIME_RANGE") {
+      return res
+        .status(400)
+        .json({ message: "Start time must be before end time" });
+    }
+
+    if (error.message === "INVALID_PARTY_SIZE") {
+      return res.status(400).json({ message: "Invalid party size" });
+    }
+
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   getTables,
   filterTablesByDate,
@@ -276,4 +333,5 @@ module.exports = {
   updateTablePartial,
   deleteTable,
   getReservationsByTableId,
+  getAvailableTables,
 };

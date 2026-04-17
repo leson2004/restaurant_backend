@@ -9,5 +9,5 @@ router.post("/register", authController.register);
 router.post("/login", authController.login);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/change-password", authController.changePassword);
-router.get("/test", authController.test);
+router.get("/check-email", authController.checkEmail);
 module.exports = router;

@@ -8,37 +8,39 @@ module.exports = {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-        allowNull: false,
       },
-      number: {
-        type: Sequelize.INTEGER,
+
+      code: {
+        type: Sequelize.STRING(20),
         allowNull: false,
-        unique: true, // mỗi bàn có số riêng
+        unique: true, // VD: T01, T02
       },
+
       capacity: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      status: {
-        type: Sequelize.TINYINT,
+
+      is_active: {
+        type: Sequelize.BOOLEAN,
         allowNull: false,
-        defaultValue: 0, // 0 = trống, 1 = đang phục vụ
+        defaultValue: true,
       },
+
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
+
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
         onUpdate: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface) {
     await queryInterface.dropTable("tables");
   },
 };

@@ -98,10 +98,35 @@ const getAdminRooms = async (req, res) => {
     });
   }
 };
+const getMessagesByRoom = async (req, res) => {
+  try {
+    const { roomId } = req.params;
 
+    if (!roomId) {
+      return res.status(400).json({
+        success: false,
+        message: "roomId is required",
+      });
+    }
+
+    const messages = await chatService.getMessagesByRoomId(roomId);
+
+    return res.json({
+      success: true,
+      data: messages,
+    });
+  } catch (error) {
+    console.error("getMessagesByRoom error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
 module.exports = {
   getOrCreateRoom,
   getMessagesByUser,
   createMessage,
   getAdminRooms,
+  getMessagesByRoom,
 };

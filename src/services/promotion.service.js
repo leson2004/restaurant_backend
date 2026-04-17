@@ -1,6 +1,48 @@
 const { Op } = require("sequelize");
 const { Promotion } = require("../models/index");
 
+/**
+ * Map promotion type to discount_type for API response.
+ * type 1 (đặc biệt) => "percent", type 0 (thường) => "fixed"
+ */
+const getDiscountType = (type) => (parseInt(type, 10) === 1 ? "percent" : "fixed");
+
+/**
+ * Get promotions for public (e.g. Pay page dropdown).
+ * Query: type (e.g. 1 = special), valid_now (1 = only valid now, quantity > 0).
+ * Returns list with discount_type in each item.
+ */
+const getValidPromotionsForPublic = async ({ type, valid_now }) => {
+  const now = new Date();
+  const where = {};
+
+  if (type !== undefined && type !== null && type !== "") {
+    where.type = parseInt(type, 10);
+  }
+  if (valid_now === 1 || valid_now === "1") {
+    where.valid_from = { [Op.lte]: now };
+    where.valid_to = { [Op.gte]: now };
+    where.quantity = { [Op.gt]: 0 };
+  }
+
+  const results = await Promotion.findAll({
+    where,
+    order: [["id", "ASC"]],
+    raw: true,
+  });
+
+  return results.map((row) => ({
+    id: row.id,
+    code_name: row.code_name,
+    discount: parseFloat(row.discount),
+    discount_type: getDiscountType(row.type),
+    type: row.type,
+    quantity: row.quantity,
+    valid_from: row.valid_from,
+    valid_to: row.valid_to,
+  }));
+};
+
 const getAllPromotions = async ({ search, page, limit }) => {
   try {
     const whereCondition = {
@@ -149,6 +191,8 @@ const deletePromotionById = async (id) => {
   }
 };
 module.exports = {
+  getValidPromotionsForPublic,
+  getDiscountType,
   getAllPromotions,
   getPromotionById,
   createPromotion,

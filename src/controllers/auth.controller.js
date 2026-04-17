@@ -1,8 +1,34 @@
 const authService = require("../services/auth.service");
-const test = async (req, res) => {
-  return res.status(200).json({
-    message: "thành công",
-  });
+
+const checkEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    //  Validate trong controller
+    if (!email) {
+      return res.status(400).json({
+        message: "Email is required",
+      });
+    }
+
+    const user = await authService.checkEmailExists(email);
+
+    if (user) {
+      return res.status(200).json({
+        exists: true,
+        user,
+      });
+    }
+
+    return res.status(200).json({
+      exists: false,
+    });
+  } catch (error) {
+    console.error("Check email error:", error.message);
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
 };
 const googleLogin = async (req, res) => {
   try {
@@ -199,5 +225,5 @@ module.exports = {
   login,
   forgotPassword,
   changePassword,
-  test,
+  checkEmail,
 };

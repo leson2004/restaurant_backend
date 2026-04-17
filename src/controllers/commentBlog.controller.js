@@ -1,13 +1,20 @@
 const commentService = require("../services/commentBlog.service");
+const geminiModerationService = require("../services/geminiModeration.service");
 
 const getComments = async (req, res) => {
   try {
-    const { searchName = "", page = 1, limit = 10 } = req.query;
+    const {
+      searchName = "",
+      page = 1,
+      limit = 10,
+      include_all_statuses: includeAllStatuses = false,
+    } = req.query;
 
     const data = await commentService.getComments({
       searchName,
       page,
       limit,
+      includeAllStatuses: includeAllStatuses === "1" || includeAllStatuses === "true",
     });
 
     return res.status(200).json({
@@ -25,9 +32,12 @@ const getComments = async (req, res) => {
 const getCommentsByBlogId = async (req, res) => {
   try {
     const { blog_id } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      include_all_statuses: includeAllStatuses = false,
+    } = req.query;
 
-    // ✅ Validate trong controller
     if (!blog_id || isNaN(blog_id)) {
       return res.status(400).json({
         error: "Invalid blog_id",
@@ -38,6 +48,7 @@ const getCommentsByBlogId = async (req, res) => {
       blog_id,
       page,
       limit,
+      includeAllStatuses: includeAllStatuses === "1" || includeAllStatuses === "true",
     });
 
     return res.status(200).json({
@@ -56,7 +67,7 @@ const createComment = async (req, res) => {
   try {
     const { blog_id, user_id, content } = req.body;
 
-    // ✅ Validate trong controller
+    // ✅ Validate inputs
     if (!blog_id || isNaN(blog_id)) {
       return res.status(400).json({
         error: "Invalid blog_id",
@@ -75,15 +86,52 @@ const createComment = async (req, res) => {
       });
     }
 
-    await commentService.createComment({
+    // 🤖 Gọi Gemini AI để phân tích nội dung
+    const moderationResult =
+      await geminiModerationService.analyzeCommentToxicity(content);
+
+    // 📊 Xác định trạng thái moderation
+    const moderation_status = geminiModerationService.getModerationStatus(
+      moderationResult.toxicity_score,
+    );
+
+    // ❌ Nếu rejected - không lưu vào DB
+    if (moderation_status === "rejected") {
+      return res.status(400).json({
+        status: "rejected",
+        message: "Bình luận chứa nội dung không phù hợp",
+        reason: moderationResult.reason,
+      });
+    }
+
+    // 💾 Lưu comment vào database
+    const savedComment = await commentService.createComment({
       blog_id,
       user_id,
       content,
+      toxicity_score: moderationResult.toxicity_score,
+      moderation_status,
+      moderation_reason: moderationResult.reason,
+      is_deleted: 0,
     });
 
-    return res.status(201).json({
+    // ⚠️ Nếu hidden - thông báo cho user
+    if (moderation_status === "hidden") {
+      return res.status(201).json({
+        status: "hidden",
+        message: "Bình luận của bạn đã bị ẩn do vi phạm tiêu chuẩn cộng đồng",
+        comment: savedComment,
+      });
+    }
+
+    // ✅ Nếu approved - trả bình thường (isFailOpen: true khi moderation bị bỏ qua do lỗi API)
+    const payload = {
+      status: "approved",
       message: "Thêm bình luận thành công",
-    });
+      comment: savedComment,
+    };
+    if (moderationResult.isFailOpen) payload.moderation_skipped = true;
+    return res.status(201).json(payload);
   } catch (error) {
     console.error("Lỗi khi tạo bình luận:", error);
 
@@ -94,19 +142,20 @@ const createComment = async (req, res) => {
 };
 const updateComment = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { customer_id, content } = req.body;
+    const id = req.params.id || req.body.id;
+    const { customer_id, user_id, content } = req.body;
+    const ownerId = customer_id ?? user_id;
 
-    // ✅ Validate trong controller
-    if (!id || isNaN(id)) {
+    // ✅ Validate
+    if (!id || isNaN(Number(id))) {
       return res.status(400).json({
         error: "Invalid comment id",
       });
     }
 
-    if (!customer_id || isNaN(customer_id)) {
+    if (!ownerId || isNaN(Number(ownerId))) {
       return res.status(400).json({
-        error: "Invalid customer_id",
+        error: "Invalid customer_id or user_id",
       });
     }
 
@@ -116,15 +165,36 @@ const updateComment = async (req, res) => {
       });
     }
 
+    // 🤖 Re-run moderation when content changes
+    const moderationResult =
+      await geminiModerationService.analyzeCommentToxicity(content);
+    const moderation_status = geminiModerationService.getModerationStatus(
+      moderationResult.toxicity_score,
+    );
+
+    if (moderation_status === "rejected") {
+      return res.status(400).json({
+        status: "rejected",
+        message: "Nội dung chỉnh sửa không phù hợp",
+        reason: moderationResult.reason,
+      });
+    }
+
     await commentService.updateCommentById({
-      id,
-      customer_id,
+      id: Number(id),
+      customer_id: Number(ownerId),
       content,
+      toxicity_score: moderationResult.toxicity_score,
+      moderation_status,
+      moderation_reason: moderationResult.reason,
     });
 
-    return res.status(200).json({
+    const payload = {
       message: "Cập nhật bình luận thành công",
-    });
+      status: moderation_status,
+    };
+    if (moderationResult.isFailOpen) payload.moderation_skipped = true;
+    return res.status(200).json(payload);
   } catch (error) {
     console.error("Lỗi khi cập nhật bình luận:", error);
 
@@ -135,9 +205,9 @@ const updateComment = async (req, res) => {
 };
 const patchComment = async (req, res) => {
   try {
-    const { id } = req.params;
-    const updates = req.body;
-    if (!id || isNaN(id)) {
+    const id = req.params.id || req.body.id;
+    const updates = { ...req.body };
+    if (!id || isNaN(Number(id))) {
       return res.status(400).json({
         error: "Invalid comment id",
       });
@@ -149,13 +219,32 @@ const patchComment = async (req, res) => {
       });
     }
 
-    //  Không cho update các field nguy hiểm (nếu cần)
     delete updates.id;
     delete updates.created_at;
     delete updates.updated_at;
 
+    if (updates.content !== undefined && updates.content !== null) {
+      const moderationResult =
+        await geminiModerationService.analyzeCommentToxicity(
+          String(updates.content).trim() || "",
+        );
+      const moderation_status = geminiModerationService.getModerationStatus(
+        moderationResult.toxicity_score,
+      );
+      if (moderation_status === "rejected") {
+        return res.status(400).json({
+          status: "rejected",
+          message: "Nội dung chỉnh sửa không phù hợp",
+          reason: moderationResult.reason,
+        });
+      }
+      updates.toxicity_score = moderationResult.toxicity_score;
+      updates.moderation_status = moderation_status;
+      updates.moderation_reason = moderationResult.reason;
+    }
+
     await commentService.patchCommentById({
-      id,
+      id: Number(id),
       updates,
     });
 
@@ -172,16 +261,15 @@ const patchComment = async (req, res) => {
 };
 const deleteComment = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id || req.body.id;
 
-    // ✅ Validate trong controller
-    if (!id || isNaN(id)) {
+    if (!id || isNaN(Number(id))) {
       return res.status(400).json({
         error: "Invalid comment id",
       });
     }
 
-    await commentService.deleteCommentById(id);
+    await commentService.deleteCommentById(Number(id));
 
     return res.status(200).json({
       message: "Xóa bình luận thành công",

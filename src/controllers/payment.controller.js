@@ -57,6 +57,37 @@ const getPayUrl = async (req, res) => {
     });
   }
 };
+const payBalance = async (req, res) => {
+  try {
+    const { amount, reservationId } = req.body;
+
+    // ✅ Validate trong controller
+    if (!amount || !reservationId) {
+      return res.status(400).json({
+        message: "amount and reservationId are required",
+      });
+    }
+
+    const result = await paymentService.createPayBalance({
+      amount,
+      reservationId,
+    });
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("MoMo payment error:", error);
+
+    if (error.message === "RESERVATION_NOT_FOUND") {
+      return res.status(404).json({
+        message: "Reservation not found",
+      });
+    }
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
 const momoCallback = async (req, res) => {
   try {
     console.log("MoMo callback:", req.body);
@@ -69,9 +100,8 @@ const momoCallback = async (req, res) => {
     }
 
     if (resultCode === 0) {
-      const result = await paymentService.updateReservationStatusByCallback(
-        orderId
-      );
+      const result =
+        await paymentService.updateReservationStatusByCallback(orderId);
 
       return res.status(200).json({
         message: "Payment success",
@@ -122,9 +152,140 @@ const transactionStatus = async (req, res) => {
     });
   }
 };
+const createDepositPayment = async (req, res) => {
+  try {
+    const { reservationId, depositAmount, method, promotion_id, totalAmount } = req.body;
+
+    // ✅ Validate reservation ID
+    if (!reservationId) {
+      return res.status(400).json({
+        error: "reservationId is required",
+      });
+    }
+
+    const result = await paymentService.createDepositPayment({
+      reservationId,
+      depositAmount,
+      method,
+      promotion_id,
+      totalAmount,
+    });
+
+    return res.status(200).json({
+      message: "Deposit payment URL generated successfully",
+      payUrl: result.payUrl,
+      orderId: result.orderId,
+      amount: result.amount,
+    });
+  } catch (error) {
+    console.error("Deposit payment error:", error);
+
+    if (error.message === "RESERVATION_NOT_FOUND") {
+      return res.status(404).json({ error: "Reservation not found" });
+    }
+
+    if (error.message === "RESERVATION_NOT_IN_HOLD_STATUS") {
+      return res.status(400).json({
+        error: "Reservation must be in HOLD status",
+      });
+    }
+
+    if (error.message === "RESERVATION_EXPIRED") {
+      return res.status(400).json({
+        error: "Reservation hold has expired",
+      });
+    }
+
+    if (error.message === "INVALID_DEPOSIT_AMOUNT") {
+      return res.status(400).json({
+        error: "Invalid deposit amount",
+      });
+    }
+
+    return res.status(500).json({
+      error: "Internal server error",
+    });
+  }
+};
+
+const momoDepositCallback = async (req, res) => {
+  try {
+    console.log("MoMo deposit callback:", req.body);
+
+    const { resultCode, orderId, amount, transId, extraData } = req.body;
+
+    // ✅ Validate callback data
+    if (typeof resultCode !== "number" || !orderId) {
+      return res.status(400).json({
+        error: "Invalid callback data",
+      });
+    }
+
+    // Handle deposit callback (extraData may contain promotion_id, totalAmount)
+    const result = await paymentService.handleDepositCallback({
+      resultCode,
+      orderId,
+      amount,
+      transId,
+      extraData,
+    });
+
+    if (result.success) {
+      return res.status(200).json({
+        message: "Deposit payment successful",
+        data: result,
+      });
+    } else {
+      return res.status(200).json({
+        message: "Deposit payment failed or expired",
+        data: result,
+      });
+    }
+  } catch (error) {
+    console.error("MoMo deposit callback error:", error.message);
+    return res.status(500).json({
+      error: error.message || "Server error",
+    });
+  }
+};
+
+const momoCompleteCallback = async (req, res) => {
+  try {
+    console.log("MoMo complete callback:", req.body);
+
+    const { resultCode, orderId, amount, transId, extraData } = req.body;
+
+    if (typeof resultCode !== "number" || !orderId) {
+      return res.status(400).json({ error: "Invalid callback data" });
+    }
+
+    const result = await paymentService.handleCompleteCallback({
+      resultCode,
+      orderId,
+      amount,
+      transId,
+      extraData,
+    });
+
+    return res.status(200).json({
+      message: result.success ? "Complete payment successful" : "Complete payment failed or cancelled",
+      data: result,
+    });
+  } catch (error) {
+    console.error("MoMo complete callback error:", error.message);
+    return res.status(500).json({
+      error: error.message || "Server error",
+    });
+  }
+};
+
 module.exports = {
   createPayment,
   getPayUrl,
   momoCallback,
   transactionStatus,
+  payBalance,
+  createDepositPayment,
+  momoDepositCallback,
+  momoCompleteCallback,
 };

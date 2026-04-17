@@ -1,141 +1,179 @@
 "use strict";
-const { Model } = require("sequelize");
-
 module.exports = (sequelize, DataTypes) => {
-  class Reservation extends Model {
-    static associate(models) {
-      // Một đơn đặt bàn thuộc về 1 user
-      Reservation.belongsTo(models.User, {
-        foreignKey: "user_id",
-        // as: "user",
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      });
-
-      // Một đơn đặt bàn thuộc về 1 bàn (table)
-      Reservation.belongsTo(models.Table, {
-        foreignKey: "table_id",
-        // as: "table",
-        onUpdate: "CASCADE",
-        onDelete: "RESTRICT",
-      });
-
-      // Một đơn đặt bàn có thể gắn 1 khuyến mãi
-      Reservation.belongsTo(models.Promotion, {
-        foreignKey: "promotion_id",
-        // as: "promotion",
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      });
-
-      // Một đơn đặt bàn có thể chứa nhiều chi tiết món ăn
-      Reservation.hasMany(models.ReservationDetail, {
-        foreignKey: "reservation_id",
-        // as: "details",
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
-      });
-      Reservation.hasMany(models.ChangeDish, {
-        foreignKey: "reservation_id",
-        // as: "changedishes", // nên đặt alias cho rõ
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
-      });
-    }
-  }
-
-  Reservation.init(
+  const Reservation = sequelize.define(
+    "Reservation",
     {
       id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-        allowNull: false,
       },
+
       reservation_code: {
         type: DataTypes.STRING(50),
         allowNull: false,
         unique: true,
       },
+
       user_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
-      number_change: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0,
-      },
+
       table_id: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
       promotion_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
+
       fullname: {
         type: DataTypes.STRING(255),
         allowNull: false,
       },
+
       tel: {
         type: DataTypes.STRING(20),
         allowNull: false,
       },
+
       email: {
         type: DataTypes.STRING(255),
         allowNull: true,
       },
-      reservation_date: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
+
       party_size: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 1,
       },
-      note: {
-        type: DataTypes.TEXT,
+
+      start_time: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+
+      end_time: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+
+      hold_expired_at: {
+        type: DataTypes.DATE,
         allowNull: true,
       },
+
+      reservation_type: {
+        type: DataTypes.TINYINT,
+        allowNull: false,
+        defaultValue: 0,
+        comment: "0=ONLINE,1=WALK_IN",
+      },
+
       total_amount: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
         defaultValue: 0,
       },
+
       deposit: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0,
+      },
+
+      paid_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      payment_method: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+      },
+
+      status: {
+        type: DataTypes.TINYINT,
+        allowNull: false,
+        defaultValue: 0,
+        comment:
+          "0=HOLD,1=CONFIRMED,2=CHECKED_IN,3=COMPLETED,4=CANCELED,5=EXPIRED",
+      },
+
+      checked_in_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+
+      completed_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+
+      cancelled_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      refund_type: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+        comment: "FULL|HALF|NONE",
+      },
+      refund_amount: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: true,
         defaultValue: 0,
       },
-      status: {
-        type: DataTypes.TINYINT,
-        allowNull: false,
-        defaultValue: 1, // 1: chờ xác nhận, 2: đã xác nhận, 3: hoàn thành, 4: hủy
+      refund_status: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+        defaultValue: "PENDING",
       },
+      table_changed_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+
       momo_order_id: {
         type: DataTypes.STRING(100),
         allowNull: true,
       },
-      created_at: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
+
+      note: {
+        type: DataTypes.TEXT,
+        allowNull: true,
       },
     },
     {
-      sequelize,
-      modelName: "Reservation",
       tableName: "reservations",
-      timestamps: false, // vì bạn dùng created_at và updated_at thủ công
-    }
+      underscored: true,
+      timestamps: true,
+    },
   );
+
+  Reservation.associate = (models) => {
+    Reservation.belongsTo(models.User, {
+      foreignKey: "user_id",
+      as: "user",
+    });
+
+    Reservation.belongsTo(models.Table, {
+      foreignKey: "table_id",
+      as: "table",
+    });
+    Reservation.belongsTo(models.Promotion, {
+      foreignKey: "promotion_id",
+      as: "promotion",
+    });
+
+    // A reservation can have many reservation details (pre-ordered items)
+    Reservation.hasMany(models.ReservationDetail, {
+      foreignKey: "reservation_id",
+      as: "reservation_details",
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    });
+  };
 
   return Reservation;
 };
